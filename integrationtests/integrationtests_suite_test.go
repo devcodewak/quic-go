@@ -2,7 +2,6 @@ package integrationtests
 
 import (
 	"bytes"
-	"crypto/md5"
 	"flag"
 	"fmt"
 	"io"
@@ -15,7 +14,6 @@ import (
 	"runtime"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	"strconv"
 
@@ -30,16 +28,14 @@ import (
 )
 
 const (
-	dataLen      = 500 * 1024       // 500 KB
-	dataLongLen  = 50 * 1024 * 1024 // 50 MB
-	dlDataPrefix = "quic-go_dl_test_"
+	dataLen     = 500 * 1024       // 500 KB
+	dataLongLen = 50 * 1024 * 1024 // 50 MB
 )
 
 var (
 	server         *h2quic.Server
 	dataMan        dataManager
 	port           string
-	downloadDir    string
 	clientPath     string
 	serverPath     string
 	nFilesUploaded int32
@@ -53,12 +49,7 @@ func TestIntegration(t *testing.T) {
 	RunSpecs(t, "Integration Tests Suite")
 }
 
-var _ = BeforeSuite(func() {
-	setupHTTPHandlers()
-	setupQuicServer()
-
-	downloadDir = os.Getenv("HOME") + "/Downloads/"
-})
+var _ = BeforeSuite(setupHTTPHandlers)
 
 // read the logfile command line flag
 // to set call ginkgo -- -logfile=log.txt
@@ -97,10 +88,6 @@ var _ = AfterEach(func() {
 	nFilesUploaded = 0
 })
 
-var _ = AfterEach(func() {
-	removeDownloadData()
-})
-
 func setupHTTPHandlers() {
 	defer GinkgoRecover()
 
@@ -118,11 +105,13 @@ func setupHTTPHandlers() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	http.HandleFunc("/data/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/prdata", func(w http.ResponseWriter, r *http.Request) {
 		defer GinkgoRecover()
-		data := dataMan.GetData()
-		Expect(data).ToNot(HaveLen(0))
-		_, err := w.Write(data)
+		sl := r.URL.Query().Get("len")
+		l, err := strconv.Atoi(sl)
+		Expect(err).NotTo(HaveOccurred())
+		data := generatePRData(l)
+		_, err = w.Write(data)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -134,10 +123,20 @@ func setupHTTPHandlers() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	// Requires the len & num GET parameters, e.g. /uploadform?len=100&num=1
+	// Requires the len & num GET parameters, e.g. /uploadtest?len=100&num=1
 	http.HandleFunc("/uploadtest", func(w http.ResponseWriter, r *http.Request) {
 		defer GinkgoRecover()
 		response := uploadHTML
+		response = strings.Replace(response, "LENGTH", r.URL.Query().Get("len"), -1)
+		response = strings.Replace(response, "NUM", r.URL.Query().Get("num"), -1)
+		_, err := io.WriteString(w, response)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	// Requires the len & num GET parameters, e.g. /downloadtest?len=100&num=1
+	http.HandleFunc("/downloadtest", func(w http.ResponseWriter, r *http.Request) {
+		defer GinkgoRecover()
+		response := downloadHTML
 		response = strings.Replace(response, "LENGTH", r.URL.Query().Get("len"), -1)
 		response = strings.Replace(response, "NUM", r.URL.Query().Get("num"), -1)
 		_, err := io.WriteString(w, response)
@@ -179,153 +178,66 @@ func startQuicServer() {
 	}()
 }
 
-<<<<<<< HEAD
 func stopQuicServer() {
 	Expect(server.Close()).NotTo(HaveOccurred())
 }
 
-func setupSelenium() {
-	var err error
-	pullCmd := exec.Command("docker", "pull", "lclemente/standalone-chrome:dev")
-	pull, err := gexec.Start(pullCmd, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	// Assuming a download at 10 Mbit/s
-	Eventually(pull, 10*time.Minute).Should(gexec.Exit(0))
-
-	dockerCmd := exec.Command(
-		"docker",
-		"run",
-		"-i",
-		"--rm",
-		"-p=4444:4444",
-		"--name", "quic-test-selenium",
-		"lclemente/standalone-chrome:dev",
-	)
-	docker, err = gexec.Start(dockerCmd, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(docker.Out, 10).Should(gbytes.Say("Selenium Server is up and running"))
+const prngJS = `
+var buf = new ArrayBuffer(LENGTH);
+var prng = new Uint8Array(buf);
+var seed = 1;
+for (var i = 0; i < LENGTH; i++) {
+	// https://en.wikipedia.org/wiki/Lehmer_random_number_generator
+	seed = seed * 48271 % 2147483647;
+	prng[i] = seed;
 }
-
-func stopSelenium() {
-	docker.Interrupt().Wait(10)
-}
-
-func getWebdriverForVersion(version protocol.VersionNumber) selenium.WebDriver {
-	caps := selenium.Capabilities{
-		"browserName": "chrome",
-		"chromeOptions": map[string]interface{}{
-			"args": []string{
-				"--enable-quic",
-				"--no-proxy-server",
-				"--origin-to-force-quic-on=quic.clemente.io:443",
-				fmt.Sprintf(`--host-resolver-rules=MAP quic.clemente.io:443 %s:%s`, GetLocalIP(), port),
-				fmt.Sprintf(`--quic-version=QUIC_VERSION_%d`, version),
-			},
-		},
-	}
-	wd, err := selenium.NewRemote(caps, "http://localhost:4444/wd/hub")
-	Expect(err).NotTo(HaveOccurred())
-	return wd
-}
-
-func GetLocalIP() string {
-	// First, try finding interface docker0
-	i, err := net.InterfaceByName("docker0")
-	if err == nil {
-		var addrs []net.Addr
-		addrs, err = i.Addrs()
-		Expect(err).NotTo(HaveOccurred())
-		return addrs[0].(*net.IPNet).IP.String()
-	}
-
-	addrs, err := net.InterfaceAddrs()
-	Expect(err).NotTo(HaveOccurred())
-	for _, address := range addrs {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	panic("no addr")
-}
-
-func removeDownload(filename string) {
-	cmd := exec.Command("docker", "exec", "-i", "quic-test-selenium", "rm", "-f", "/home/seluser/Downloads/"+filename)
-	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session, 5).Should(gexec.Exit(0))
-}
-
-// getDownloadSize gets the file size of a file in the /home/seluser/Downloads folder in the docker container
-=======
-// getDownloadSize gets the file size of a file in the local download folder
->>>>>>> a9ecc2d... Replace docker with chromedp for integration tests
-func getDownloadSize(filename string) int {
-	stat, err := os.Stat(downloadDir + filename)
-	if err != nil {
-		return 0
-	}
-	return int(stat.Size())
-}
-
-// getDownloadMD5 gets the md5 sum file of a file in the local download folder
-func getDownloadMD5(filename string) []byte {
-	return getFileMD5(filepath.Join(downloadDir, filename))
-}
-
-func getFileMD5(filename string) []byte {
-	var result []byte
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil
-	}
-	defer file.Close()
-
-	hash := md5.New()
-	_, err = io.Copy(hash, file)
-	if err != nil {
-		return nil
-	}
-	return hash.Sum(result)
-}
-
-func getRandomDlName() string {
-	return dlDataPrefix + strconv.Itoa(time.Now().Nanosecond())
-}
-
-func removeDownloadData() {
-	pattern := downloadDir + dlDataPrefix + "*"
-	if len(pattern) < 10 || !strings.Contains(pattern, "quic-go") {
-		panic("DL dir looks weird: " + pattern)
-	}
-	paths, err := filepath.Glob(pattern)
-	Expect(err).NotTo(HaveOccurred())
-	if len(paths) > 2 {
-		panic("warning: would have deleted too many files, pattern " + pattern)
-	}
-	for _, path := range paths {
-		err = os.Remove(path)
-		Expect(err).NotTo(HaveOccurred())
-	}
-}
+`
 
 const uploadHTML = `
 <html>
 <body>
 <script>
-  var buf = new ArrayBuffer(LENGTH);
-  var arr = new Uint8Array(buf);
-  var seed = 1;
-  for (var i = 0; i < LENGTH; i++) {
-    // https://en.wikipedia.org/wiki/Lehmer_random_number_generator
-    seed = seed * 48271 % 2147483647;
-    arr[i] = seed;
-  }
+  ` + prngJS + `
 	for (var i = 0; i < NUM; i++) {
 		var req = new XMLHttpRequest();
 		req.open("POST", "/uploadhandler?len=" + LENGTH, true);
 		req.send(buf);
+	}
+</script>
+</body>
+</html>
+`
+
+const downloadHTML = `
+<html>
+<body>
+<script>
+	` + prngJS + `
+
+	function verify(data) {
+		if (data.length !== LENGTH) return false;
+		for (var i = 0; i < LENGTH; i++) {
+			if (data[i] !== prng[i]) return false;
+		}
+		return true;
+	}
+
+	var nOK = 0;
+	for (var i = 0; i < NUM; i++) {
+		let req = new XMLHttpRequest();
+		req.responseType = "arraybuffer";
+		req.open("POST", "/prdata?len=" + LENGTH, true);
+		req.onreadystatechange = function () {
+			if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
+				if (verify(new Uint8Array(req.response))) {
+					nOK++;
+					if (nOK === NUM) {
+						document.write("dltest ok");
+					}
+				}
+			}
+		};
+		req.send();
 	}
 </script>
 </body>
