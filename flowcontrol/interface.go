@@ -1,6 +1,6 @@
 package flowcontrol
 
-import "github.com/lucas-clemente/quic-go/protocol"
+import "github.com/phuslu/quic-go/protocol"
 
 // WindowUpdate provides the data for WindowUpdateFrames.
 type WindowUpdate struct {

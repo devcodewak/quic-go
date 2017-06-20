@@ -3,15 +3,15 @@ package quic
 import (
 	"errors"
 	"io"
+	"os"
 	"runtime"
 	"strconv"
 	"time"
 
-	"os"
+	"github.com/phuslu/quic-go/frames"
+	"github.com/phuslu/quic-go/internal/mocks/mocks_fc"
+	"github.com/phuslu/quic-go/protocol"
 
-	"github.com/lucas-clemente/quic-go/frames"
-	"github.com/lucas-clemente/quic-go/internal/mocks/mocks_fc"
-	"github.com/lucas-clemente/quic-go/protocol"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

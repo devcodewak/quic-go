@@ -3,9 +3,9 @@ package quic
 import (
 	"bytes"
 
-	"github.com/lucas-clemente/quic-go/frames"
-	"github.com/lucas-clemente/quic-go/internal/mocks/mocks_fc"
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/frames"
+	"github.com/phuslu/quic-go/internal/mocks/mocks_fc"
+	"github.com/phuslu/quic-go/protocol"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

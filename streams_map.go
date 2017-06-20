@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/lucas-clemente/quic-go/handshake"
-	"github.com/lucas-clemente/quic-go/protocol"
-	"github.com/lucas-clemente/quic-go/qerr"
+	"github.com/phuslu/quic-go/handshake"
+	"github.com/phuslu/quic-go/protocol"
+	"github.com/phuslu/quic-go/qerr"
 )
 
 type streamsMap struct {

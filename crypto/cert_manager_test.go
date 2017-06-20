@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/lucas-clemente/quic-go/qerr"
-	"github.com/lucas-clemente/quic-go/testdata"
+	"github.com/phuslu/quic-go/qerr"
+	"github.com/phuslu/quic-go/testdata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

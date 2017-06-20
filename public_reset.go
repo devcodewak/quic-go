@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/lucas-clemente/quic-go/handshake"
-	"github.com/lucas-clemente/quic-go/internal/utils"
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/handshake"
+	"github.com/phuslu/quic-go/internal/utils"
+	"github.com/phuslu/quic-go/protocol"
 )
 
 type publicReset struct {

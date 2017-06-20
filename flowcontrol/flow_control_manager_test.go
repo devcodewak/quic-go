@@ -3,10 +3,10 @@ package flowcontrol
 import (
 	"time"
 
-	"github.com/lucas-clemente/quic-go/congestion"
-	"github.com/lucas-clemente/quic-go/internal/mocks"
-	"github.com/lucas-clemente/quic-go/protocol"
-	"github.com/lucas-clemente/quic-go/qerr"
+	"github.com/phuslu/quic-go/congestion"
+	"github.com/phuslu/quic-go/internal/mocks"
+	"github.com/phuslu/quic-go/protocol"
+	"github.com/phuslu/quic-go/qerr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

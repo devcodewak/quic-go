@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/protocol"
 
 	_ "github.com/lucas-clemente/quic-clients" // download clients
 

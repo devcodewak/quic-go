@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"math"
 
-	"github.com/lucas-clemente/quic-go/ackhandler"
-	"github.com/lucas-clemente/quic-go/frames"
-	"github.com/lucas-clemente/quic-go/handshake"
-	"github.com/lucas-clemente/quic-go/internal/mocks"
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/ackhandler"
+	"github.com/phuslu/quic-go/frames"
+	"github.com/phuslu/quic-go/handshake"
+	"github.com/phuslu/quic-go/internal/mocks"
+	"github.com/phuslu/quic-go/protocol"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

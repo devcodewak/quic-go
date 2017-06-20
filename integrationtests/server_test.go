@@ -18,7 +18,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lucas-clemente/quic-go/h2quic"
+	"github.com/phuslu/quic-go/h2quic"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
