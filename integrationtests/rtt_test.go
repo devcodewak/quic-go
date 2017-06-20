@@ -8,8 +8,8 @@ import (
 	"time"
 
 	_ "github.com/lucas-clemente/quic-clients" // download clients
-	"github.com/lucas-clemente/quic-go/integrationtests/proxy"
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/integrationtests/proxy"
+	"github.com/phuslu/quic-go/protocol"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

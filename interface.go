@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/protocol"
 )
 
 // Stream is the interface implemented by QUIC streams
@@ -62,7 +62,7 @@ type STK struct {
 }
 
 // Config contains all configuration data needed for a QUIC server or client.
-// More config parameters (such as timeouts) will be added soon, see e.g. https://github.com/lucas-clemente/quic-go/issues/441.
+// More config parameters (such as timeouts) will be added soon, see e.g. https://github.com/phuslu/quic-go/issues/441.
 type Config struct {
 	TLSConfig *tls.Config
 	// The QUIC versions that can be negotiated.

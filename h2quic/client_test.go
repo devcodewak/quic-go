@@ -11,9 +11,9 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 
-	quic "github.com/lucas-clemente/quic-go"
-	"github.com/lucas-clemente/quic-go/protocol"
-	"github.com/lucas-clemente/quic-go/qerr"
+	quic "github.com/phuslu/quic-go"
+	"github.com/phuslu/quic-go/protocol"
+	"github.com/phuslu/quic-go/qerr"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

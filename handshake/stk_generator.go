@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/lucas-clemente/quic-go/crypto"
+	"github.com/phuslu/quic-go/crypto"
 )
 
 const (

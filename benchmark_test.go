@@ -9,8 +9,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/lucas-clemente/quic-go/protocol"
-	"github.com/lucas-clemente/quic-go/testdata"
+	"github.com/phuslu/quic-go/protocol"
+	"github.com/phuslu/quic-go/testdata"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

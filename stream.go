@@ -5,10 +5,10 @@ import (
 	"io"
 	"sync"
 
-	"github.com/lucas-clemente/quic-go/flowcontrol"
-	"github.com/lucas-clemente/quic-go/frames"
-	"github.com/lucas-clemente/quic-go/internal/utils"
-	"github.com/lucas-clemente/quic-go/protocol"
+	"github.com/phuslu/quic-go/flowcontrol"
+	"github.com/phuslu/quic-go/frames"
+	"github.com/phuslu/quic-go/internal/utils"
+	"github.com/phuslu/quic-go/protocol"
 )
 
 // A Stream assembles the data from StreamFrames and provides a super-convenient Read-Interface

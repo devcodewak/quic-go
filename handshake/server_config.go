@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 
-	"github.com/lucas-clemente/quic-go/crypto"
+	"github.com/phuslu/quic-go/crypto"
 )
 
 // ServerConfig is a server config

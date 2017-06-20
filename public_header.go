@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/lucas-clemente/quic-go/internal/utils"
-	"github.com/lucas-clemente/quic-go/protocol"
-	"github.com/lucas-clemente/quic-go/qerr"
+	"github.com/phuslu/quic-go/internal/utils"
+	"github.com/phuslu/quic-go/protocol"
+	"github.com/phuslu/quic-go/qerr"
 )
 
 var (
@@ -124,7 +124,7 @@ func ParsePublicHeader(b *bytes.Reader, packetSentBy protocol.Perspective) (*Pub
 	header.ResetFlag = publicFlagByte&0x02 > 0
 
 	// TODO: activate this check once Chrome sends the correct value
-	// see https://github.com/lucas-clemente/quic-go/issues/232
+	// see https://github.com/phuslu/quic-go/issues/232
 	// if publicFlagByte&0x04 > 0 {
 	// 	return nil, errors.New("diversification nonces should only be sent by servers")
 	// }
@@ -163,7 +163,7 @@ func ParsePublicHeader(b *bytes.Reader, packetSentBy protocol.Perspective) (*Pub
 	if packetSentBy == protocol.PerspectiveServer && publicFlagByte&0x04 > 0 {
 		// TODO: remove the if once the Google servers send the correct value
 		// assume that a packet doesn't contain a diversification nonce if the version flag or the reset flag is set, no matter what the public flag says
-		// see https://github.com/lucas-clemente/quic-go/issues/232
+		// see https://github.com/phuslu/quic-go/issues/232
 		if !header.VersionFlag && !header.ResetFlag {
 			header.DiversificationNonce = make([]byte, 32)
 			// this Read can never return an EOF for a valid packet, since the diversification nonce is followed by the packet number
