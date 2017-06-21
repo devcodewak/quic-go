@@ -539,6 +539,10 @@ func (s *session) closeRemote(e error) {
 	})
 }
 
+func (s *session) CloseLocal(e error) {
+	s.closeLocal(e)
+}
+
 // Close the connection. If err is nil it will be set to qerr.PeerGoingAway.
 // It waits until the run loop has stopped before returning
 func (s *session) Close(e error) error {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -90,6 +91,21 @@ func (r *RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	hostname := authorityAddr("https", hostnameFromRequest(req))
 	return r.getClient(hostname).RoundTrip(req)
+}
+
+// CloseConnections remove clients according the net.Addr
+func (r *RoundTripper) CloseConnections(f func(addr net.Addr, idle bool) bool) {
+	hosts := []string{}
+	for host, c := range r.clients {
+		session := c.(*client).session
+		if session != nil && f(session.RemoteAddr(), false) {
+			session.CloseLocal(errors.New("h2quic: CloseConnections called"))
+			hosts = append(hosts, host)
+		}
+	}
+	for _, host := range hosts {
+		delete(r.clients, host)
+	}
 }
 
 func (r *RoundTripper) getClient(hostname string) http.RoundTripper {
