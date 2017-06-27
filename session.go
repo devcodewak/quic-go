@@ -499,7 +499,14 @@ func (s *session) handleRstStreamFrame(frame *frames.RstStreamFrame) error {
 		return errRstStreamOnInvalidStream
 	}
 
-	str.RegisterRemoteError(fmt.Errorf("RST_STREAM received with code %d", frame.ErrorCode))
+	nerr := &net.OpError{
+		Op:     "read",
+		Net:    "udp",
+		Addr:   s.conn.RemoteAddr(),
+		Source: s.conn.LocalAddr(),
+		Err:    fmt.Errorf("RST_STREAM received with code %d", frame.ErrorCode),
+	}
+	str.RegisterRemoteError(nerr)
 	return s.flowControlManager.ResetStream(frame.StreamID, frame.ByteOffset)
 }
 
@@ -525,6 +532,38 @@ func (s *session) Close(e error) error {
 	return nil
 }
 
+// wrapError converts an quic error to a *net.OpError.
+func (s *session) wrapOpError(e *qerr.QuicError) *net.OpError {
+	err := &net.OpError{
+		Net: "udp",
+		Err: e,
+	}
+
+	switch e.ErrorCode {
+	case qerr.AttemptToSendUnencryptedStreamData,
+		qerr.EncryptionFailure,
+		qerr.PacketTooLarge,
+		qerr.InvalidStreamID,
+		qerr.TooManyOpenStreams,
+		qerr.TooManyAvailableStreams,
+		qerr.PacketWriteError,
+		qerr.FlowControlSentTooMuchData,
+		qerr.TooManyOutstandingSentPackets,
+		qerr.ConnectionCancelled,
+		qerr.FailedToSerializePacket:
+		err.Op = "write"
+	default:
+		err.Op = "read"
+	}
+
+	if s.conn != nil {
+		err.Addr = s.conn.RemoteAddr()
+		err.Source = s.conn.LocalAddr()
+	}
+
+	return err
+}
+
 func (s *session) handleCloseError(closeErr closeError) error {
 	if closeErr.err == nil {
 		closeErr.err = qerr.PeerGoingAway
@@ -542,7 +581,7 @@ func (s *session) handleCloseError(closeErr closeError) error {
 		utils.Errorf("Closing session with error: %s", closeErr.err.Error())
 	}
 
-	s.streamsMap.CloseWithError(quicErr)
+	s.streamsMap.CloseWithError(s.wrapOpError(quicErr))
 
 	if closeErr.err == errCloseSessionForNewVersion {
 		return nil
@@ -706,13 +745,16 @@ func (s *session) logPacket(packet *packedPacket) {
 
 // GetOrOpenStream either returns an existing stream, a newly opened stream, or nil if a stream with the provided ID is already closed.
 // Newly opened streams should only originate from the client. To open a stream from the server, OpenStream should be used.
-func (s *session) GetOrOpenStream(id protocol.StreamID) (Stream, error) {
+func (s *session) GetOrOpenStream(id protocol.StreamID) (Stream, *net.OpError) {
 	str, err := s.streamsMap.GetOrOpenStream(id)
+
+	ne := s.wrapOpError(err.(*qerr.QuicError))
+
 	if str != nil {
-		return str, err
+		return str, ne
 	}
 	// make sure to return an actual nil value here, not an Stream with value nil
-	return nil, err
+	return nil, ne
 }
 
 // AcceptStream returns the next stream openend by the peer

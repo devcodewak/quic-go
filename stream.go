@@ -3,6 +3,7 @@ package quic
 import (
 	"fmt"
 	"io"
+	"net"
 	"sync"
 
 	"github.com/phuslu/quic-go/flowcontrol"
@@ -27,7 +28,7 @@ type stream struct {
 	readOffset     protocol.ByteCount
 
 	// Once set, the errors must not be changed!
-	err error
+	err *net.OpError
 
 	// cancelled is set when Cancel() is called
 	cancelled utils.AtomicBool
@@ -261,7 +262,7 @@ func (s *stream) CloseRemote(offset protocol.ByteCount) {
 
 // Cancel is called by session to indicate that an error occurred
 // The stream should will be closed immediately
-func (s *stream) Cancel(err error) {
+func (s *stream) Cancel(err *net.OpError) {
 	s.mutex.Lock()
 	s.cancelled.Set(true)
 	// errors must not be changed!
@@ -274,7 +275,7 @@ func (s *stream) Cancel(err error) {
 }
 
 // resets the stream locally
-func (s *stream) Reset(err error) {
+func (s *stream) Reset(err *net.OpError) {
 	if s.resetLocally.Get() {
 		return
 	}
@@ -294,7 +295,7 @@ func (s *stream) Reset(err error) {
 }
 
 // resets the stream remotely
-func (s *stream) RegisterRemoteError(err error) {
+func (s *stream) RegisterRemoteError(err *net.OpError) {
 	if s.resetRemotely.Get() {
 		return
 	}

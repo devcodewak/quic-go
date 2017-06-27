@@ -16,7 +16,7 @@ type Stream interface {
 	io.Closer
 	StreamID() protocol.StreamID
 	// Reset closes the stream with an error.
-	Reset(error)
+	Reset(*net.OpError)
 }
 
 // A Session is a QUIC connection between two peers.

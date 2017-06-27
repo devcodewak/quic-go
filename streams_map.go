@@ -3,6 +3,7 @@ package quic
 import (
 	"errors"
 	"fmt"
+	"net"
 	"sync"
 
 	"github.com/phuslu/quic-go/handshake"
@@ -321,7 +322,7 @@ func (m *streamsMap) RemoveStream(id protocol.StreamID) error {
 	return nil
 }
 
-func (m *streamsMap) CloseWithError(err error) {
+func (m *streamsMap) CloseWithError(err *net.OpError) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.closeErr = err
