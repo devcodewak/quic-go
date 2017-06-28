@@ -91,6 +91,10 @@ type Config struct {
 	// If the timeout is exceeded, the connection is closed.
 	// If this value is zero, the timeout is set to 10 seconds.
 	HandshakeTimeout time.Duration
+	// IdleTimeout is the maximum duration that the session idle time may take.
+	// If the timeout is exceeded, the session is closed.
+	// If this value is zero, the timeout is align to connection parameters.
+	IdleTimeout time.Duration
 	// AcceptSTK determines if an STK is accepted.
 	// It is called with stk = nil if the client didn't send an STK.
 	// If not set, it verifies that the address matches, and that the STK was issued within the last 24 hours.

@@ -367,6 +367,9 @@ func (s *session) maybeResetTimer() {
 }
 
 func (s *session) idleTimeout() time.Duration {
+	if s.config.IdleTimeout > 0 {
+		return s.config.IdleTimeout
+	}
 	if s.handshakeComplete {
 		return s.connectionParameters.GetIdleConnectionStateLifetime()
 	}
