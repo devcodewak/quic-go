@@ -90,7 +90,31 @@ func (r *RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	hostname := authorityAddr("https", hostnameFromRequest(req))
-	return r.getClient(hostname).RoundTrip(req)
+
+	c := r.getClient(hostname)
+	resp, err := c.RoundTrip(req)
+
+	if err == nil {
+		return resp, err
+	}
+
+	if _, ok := err.(*net.OpError); ok {
+		return resp, err
+	}
+
+	nerr := &net.OpError{
+		Op:  "read",
+		Net: "udp",
+		Err: err,
+	}
+
+	session := c.(*client).session
+	if session != nil {
+		nerr.Addr = session.RemoteAddr()
+		nerr.Source = session.LocalAddr()
+	}
+
+	return resp, nerr
 }
 
 // CloseConnections remove clients according the net.Addr
