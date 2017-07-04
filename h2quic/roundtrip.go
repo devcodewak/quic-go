@@ -40,6 +40,9 @@ type RoundTripper struct {
 	// tls.Client. If nil, the default configuration is used.
 	TLSClientConfig *tls.Config
 
+	// GetClientKey specifies a function to return a clients key string for hostname
+	GetClientKey func(hostname string) string
+
 	// DialAddr specifies an optional function for quic.DailAddr.
 	// If this value is nil, it will default to net.DialAddr for the client.
 	DialAddr func(hostname string, tlsConfig *tls.Config, config *quic.Config) (quic.Session, error)
@@ -141,10 +144,17 @@ func (r *RoundTripper) getClient(hostname string) http.RoundTripper {
 		r.clients = make(map[string]roundTripCloser)
 	}
 
-	client, ok := r.clients[hostname]
+	var hostnameKey string
+	if r.GetClientKey != nil {
+		hostnameKey = r.GetClientKey(hostname)
+	} else {
+		hostnameKey = hostname
+	}
+
+	client, ok := r.clients[hostnameKey]
 	if !ok {
 		client = newClient(hostname, r.TLSClientConfig, &roundTripperOpts{DisableCompression: r.DisableCompression, DialAddr: r.DialAddr}, r.QuicConfig)
-		r.clients[hostname] = client
+		r.clients[hostnameKey] = client
 	}
 	return client
 }
