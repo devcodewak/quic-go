@@ -22,6 +22,7 @@ import (
 
 type roundTripperOpts struct {
 	DisableCompression bool
+	DialAddr           func(hostname string, tlsConfig *tls.Config, config *quic.Config) (quic.Session, error)
 }
 
 var dialAddr = quic.DialAddr
@@ -79,6 +80,11 @@ func newClient(
 
 // dial dials the connection
 func (c *client) dial() error {
+	dialAddr := quic.DialAddr
+	if c.opts.DialAddr != nil {
+		dialAddr = c.opts.DialAddr
+	}
+
 	var err error
 	c.session, err = dialAddr(c.hostname, c.tlsConf, c.config)
 	if err != nil {
